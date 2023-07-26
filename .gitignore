@@ -2,6 +2,7 @@
 secret*
 .vscode/
 *.json
+ad_hoc.py
 
 # Python Boilerplate
 __pycache__/

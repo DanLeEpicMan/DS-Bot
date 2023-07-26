@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from source.tools.web_tools import check_member_status
 
 
-class base_event(metaclass=ABCMeta):
+class BaseEvent(metaclass=ABCMeta):
     '''
     Base event class that all event listeners should inherit from.
     ### Attributes
@@ -27,12 +27,24 @@ class base_event(metaclass=ABCMeta):
         '''
         pass
 
-class on_ready(base_event):
+class on_ready(BaseEvent):
+    '''
+    Synchronize the commands.
+    '''
     async def action(self):
         await self.bot.tree.sync(guild=discord.Object(self.config['server_id']))
         print('Ready!')
-
-class on_member_join(base_event):
+    
+class on_member_join(BaseEvent):
+    '''
+    Check if a new user is a member of DS UCSB.
+    '''
+    def __init__(self, *, bot: Bot, config: dict) -> None:
+        super().__init__(bot=bot, config=config)
+        self.member_role = discord.Object(config['member_role_id'])
+    
     async def action(self, member: discord.Member):
         if check_member_status(member):
-            member.add_roles
+            await member.add_roles(self.member_role)
+        else:
+            await member.send("You're not a member!")

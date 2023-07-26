@@ -1,12 +1,10 @@
-import aiohttp
-import asyncio
 import json
 import os
 import discord
-from discord import app_commands
 from discord.ext import commands
-from source.slash_commands import base_command
-from source.events import base_event
+from source.slash_commands import BaseCommand
+from source.events import BaseEvent
+from source.persistent_ui import BasePersistentUI
 
 TEST_MODE = True
 
@@ -22,7 +20,7 @@ bot = commands.Bot(command_prefix='$', intents=discord.Intents.all(), help_comma
 tree = bot.tree
 
 # set up server slash commands
-for cmd_class in base_command.__subclasses__():
+for cmd_class in BaseCommand.__subclasses__():
     try:
         cmd = cmd_class(bot=bot, config=config)
     except TypeError as e:
@@ -31,7 +29,7 @@ for cmd_class in base_command.__subclasses__():
     tree.command(name=cmd.name, description=cmd.desc, guild=guild)(cmd.action)
 
 # set up events
-for event_class in base_event.__subclasses__():
+for event_class in BaseEvent.__subclasses__():
     try:
         event = event_class(bot=bot, config=config)
     except TypeError as e:
@@ -39,6 +37,18 @@ for event_class in base_event.__subclasses__():
 
     setattr(bot, event.event, event.action)
 
-# finally, run the bot.
+# set up persistent UI listeners
+# even though this can technically work in 'events.py',
+# i feel that it's best to include it here due to its nature
+@bot.event
+async def setup_hook():
+    for ui_class in BasePersistentUI.__subclasses__():
+        try:
+            ui = ui_class(bot=bot, config=config)
+        except TypeError as e:
+            raise NotImplementedError(f'{ui_class.__name__} failed to implement either view or message property') from e
+        
+        bot.add_view(ui.view(), message_id=ui.message)
 
+# finally, run the bot.
 bot.run(os.environ['DS-OAUTH-KEY'])

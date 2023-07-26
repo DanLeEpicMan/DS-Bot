@@ -3,7 +3,7 @@ from discord.ext.commands import Bot
 from abc import ABCMeta, abstractmethod
 
 
-class base_command(metaclass=ABCMeta):
+class BaseCommand(metaclass=ABCMeta):
     '''
     The base class that all server commands are expected to inherit from. 
     ### Attributes
@@ -27,7 +27,7 @@ class base_command(metaclass=ABCMeta):
         '''
         pass
 
-class ping(base_command):
+class ping(BaseCommand):
     '''
     Returns the latency of the bot in miliseconds.
     '''
