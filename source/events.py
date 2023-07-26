@@ -1,6 +1,7 @@
 import discord
 from discord.ext.commands import Bot
 from abc import ABCMeta, abstractmethod
+from source.tools.web_tools import check_member_status
 
 
 class base_event(metaclass=ABCMeta):
@@ -14,10 +15,10 @@ class base_event(metaclass=ABCMeta):
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
       
     '''
-    def __init__(self, *, bot: Bot, guild_id: int) -> None:
+    def __init__(self, *, bot: Bot, config: dict) -> None:
         self.event: str = self.__class__.__name__
         self.bot: Bot = bot
-        self.guild_id: int = guild_id
+        self.config: dict = config
 
     @abstractmethod
     async def action(self):
@@ -28,9 +29,10 @@ class base_event(metaclass=ABCMeta):
 
 class on_ready(base_event):
     async def action(self):
-        await self.bot.tree.sync(guild=discord.Object(self.guild_id))
+        await self.bot.tree.sync(guild=discord.Object(self.config['server_id']))
         print('Ready!')
 
 class on_member_join(base_event):
     async def action(self, member: discord.Member):
-        print(member.name)
+        if check_member_status(member):
+            member.add_roles

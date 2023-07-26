@@ -1,15 +1,20 @@
 import aiohttp
 import asyncio
 import json
+import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from source.commands.server_commands import base_server_command
+from source.slash_commands import base_command
 from source.events import base_event
+
+TEST_MODE = True
 
 
 # load the config file, create relevant objects
-config = json.load(open('config.json'))
+config = json.load(open(
+    'test_config.json' if TEST_MODE else 'config.json'
+))
 guild = discord.Object(config['server_id'])
 
 # create bot instances
@@ -17,9 +22,9 @@ bot = commands.Bot(command_prefix='$', intents=discord.Intents.all(), help_comma
 tree = bot.tree
 
 # set up server slash commands
-for cmd_class in base_server_command.__subclasses__():
+for cmd_class in base_command.__subclasses__():
     try:
-        cmd = cmd_class(bot=bot, guild_id=guild.id)
+        cmd = cmd_class(bot=bot, config=config)
     except TypeError as e:
         raise NotImplementedError(f'{cmd_class.__name__} failed to implement action method') from e
 
@@ -28,14 +33,12 @@ for cmd_class in base_server_command.__subclasses__():
 # set up events
 for event_class in base_event.__subclasses__():
     try:
-        event = event_class(bot=bot, guild_id=guild.id)
+        event = event_class(bot=bot, config=config)
     except TypeError as e:
         raise NotImplementedError(f'{cmd_class.__name__} failed to implement action method') from e
 
     setattr(bot, event.event, event.action)
 
-# finally, prepare the bot.
+# finally, run the bot.
 
-# i think it's best to keep this here :)
-
-bot.run(config['oauth_token'])
+bot.run(os.environ['DS-OAUTH-KEY'])

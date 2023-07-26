@@ -3,7 +3,7 @@ from discord.ext.commands import Bot
 from abc import ABCMeta, abstractmethod
 
 
-class base_server_command(metaclass=ABCMeta):
+class base_command(metaclass=ABCMeta):
     '''
     The base class that all server commands are expected to inherit from. 
     ### Attributes
@@ -14,11 +14,11 @@ class base_server_command(metaclass=ABCMeta):
     ### Methods
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
     '''
-    def __init__(self, *, bot: Bot, guild_id: int) -> None:
+    def __init__(self, *, bot: Bot, config: dict) -> None:
         self.name: str = self.__class__.__name__
         self.desc: str = self.__class__.__doc__
         self.bot: Bot = bot
-        self.guild_id: int = guild_id
+        self.config: dict = config
 
     @abstractmethod
     async def action(self, interaction: discord.Interaction) -> None:
@@ -27,7 +27,7 @@ class base_server_command(metaclass=ABCMeta):
         '''
         pass
 
-class ping(base_server_command):
+class ping(base_command):
     '''
     Returns the latency of the bot in miliseconds.
     '''
