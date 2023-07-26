@@ -1,0 +1,35 @@
+import discord
+from discord.ext.commands import Bot
+from abc import ABCMeta, abstractmethod
+
+
+class base_server_command(metaclass=ABCMeta):
+    '''
+    The base class that all server commands are expected to inherit from. 
+    ### Attributes
+      `name`: The name of the command. Defaults to the name of the subclass.\n
+      `desc`: The description of the command. Defaults to the docstring of the subclass.\n
+      `bot`: The `commands.Bot` instance of the bot.\n
+      `guild_id`: The ID of the server. Note that this is an `int`.
+    ### Methods
+      `action`: The callback coroutine for when the command is invoked. Must be overridden.
+    '''
+    def __init__(self, *, bot: Bot, guild_id: int) -> None:
+        self.name: str = self.__class__.__name__
+        self.desc: str = self.__class__.__doc__
+        self.bot: Bot = bot
+        self.guild_id: int = guild_id
+
+    @abstractmethod
+    async def action(self, interaction: discord.Interaction) -> None:
+        '''
+        Must be implemented in subclass.
+        '''
+        pass
+
+class ping(base_server_command):
+    '''
+    Returns the latency of the bot in miliseconds.
+    '''
+    async def action(self, interaction: discord.Interaction):
+        await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
