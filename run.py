@@ -11,7 +11,7 @@ TEST_MODE = True
 
 # load the config file, create relevant objects
 config = json.load(open(
-    'test_config.json' if TEST_MODE else 'config.json'
+    'secrets/test_config.json' if TEST_MODE else 'secrets/config.json'
 ))
 guild = discord.Object(config['server_id'])
 

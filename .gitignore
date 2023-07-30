@@ -1,5 +1,5 @@
 # This project
-secret*
+secrets/
 .vscode/
 *.json
 ad_hoc.py
