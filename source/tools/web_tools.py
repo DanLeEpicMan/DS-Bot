@@ -18,7 +18,7 @@ class _CacheClient(gspread.Client):
     def users(self) -> set[str]:
         now = dt.now()
         time_difference = now - self.last_updated
-        if time_difference.seconds >= 3600: # update every hour
+        if time_difference.total_seconds() >= 3600: # update every hour
             self._users = set(self.open_by_key(SHEETS_CONFIG['sheet_id']).sheet1.col_values(SHEETS_CONFIG['user_column']))
             self.last_updated = now
         return self._users

@@ -10,7 +10,7 @@ class BaseCommand(metaclass=ABCMeta):
       `name`: The name of the command. Defaults to the name of the subclass.\n
       `desc`: The description of the command. Defaults to the docstring of the subclass.\n
       `bot`: The `commands.Bot` instance of the bot.\n
-      `guild_id`: The ID of the server. Note that this is an `int`.
+      `config`: The `json` config file containg relevant server information.
     ### Methods
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
     '''

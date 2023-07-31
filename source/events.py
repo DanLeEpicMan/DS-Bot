@@ -10,7 +10,7 @@ class BaseEvent(metaclass=ABCMeta):
     ### Attributes
       `event`: The event to listen to (see discord.py docs). Defaults to name of subclass.\n
       `bot`: The `commands.Bot` instance of the bot.\n
-      `guild_id`: The ID of the server. Note that this is an `int`.\n
+      `config`: The `json` config file containg relevant server information.
     ### Methods
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
       
