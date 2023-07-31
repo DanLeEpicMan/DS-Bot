@@ -5,6 +5,7 @@ from discord.ext import commands
 from source.slash_commands import BaseCommand
 from source.events import BaseEvent
 from source.persistent_ui import BasePersistentUI
+from source.background_tasks import BaseBackgroundTask
 
 TEST_MODE = True
 
@@ -37,9 +38,7 @@ for event_class in BaseEvent.__subclasses__():
 
     setattr(bot, event.event, event.action)
 
-# set up persistent UI listeners
-# even though this can technically work in 'events.py',
-# i feel that it's best to include it here due to its nature
+# set up persistent UI listeners and background tasts
 @bot.event
 async def setup_hook():
     for ui_class in BasePersistentUI.__subclasses__():
@@ -49,6 +48,15 @@ async def setup_hook():
             raise NotImplementedError(f'{ui_class.__name__} failed to implement either view or message property') from e
         
         bot.add_view(ui.view(), message_id=ui.message)
+
+# sync commands and start background tasks
+@bot.event
+async def on_ready():
+    await bot.tree.sync(guild=discord.Object(config['server_id']))
+    for task_class in BaseBackgroundTask.__subclasses__():
+        task = task_class(bot=bot, config=config)
+        task.action.start()
+    print('Ready!')
 
 # finally, run the bot.
 bot.run(os.environ['DS-OAUTH-KEY'])

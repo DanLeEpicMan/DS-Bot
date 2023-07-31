@@ -6,12 +6,12 @@ from abc import ABCMeta, abstractmethod
 class BaseCommand(metaclass=ABCMeta):
     '''
     The base class that all server commands are expected to inherit from. 
-    ### Attributes
+    ### Class Attributes (No setup required)
       `name`: The name of the command. Defaults to the name of the subclass.\n
       `desc`: The description of the command. Defaults to the docstring of the subclass.\n
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
-    ### Methods
+    ### Setup Required
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:

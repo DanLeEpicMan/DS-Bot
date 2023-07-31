@@ -15,11 +15,14 @@ class BaseView(ui.View):
 
 class BasePersistentUI(metaclass=ABCMeta):
     '''
-    Base class that all persistent UI buttons should inherit from.
-    ### Parameters
+    Base class that all persistent UI buttons should inherit from.\n
+    Persistent UI refers to `Buttons` that must always be active.\n
+    While related, this is **not** a background task, since this
+    needs to be invoked by a user. 
+    ### Class Attributes (No setup required)
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
-    ### Properties
+    ### Setup Required
       `message`: The ID of the message that the UI will attach itself to.\n
       `view`: A `BaseView` object containing all UI objects.
     '''
