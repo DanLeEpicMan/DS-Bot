@@ -23,8 +23,3 @@ class BaseBackgroundTask(metaclass=ABCMeta):
     @tasks.loop()
     async def action(self):
         raise NotImplementedError(f'{self.__class__.__name__} failed to implement action.')
-
-class test(BaseBackgroundTask):
-    @tasks.loop(seconds=10)
-    async def action(self):
-        print('test')

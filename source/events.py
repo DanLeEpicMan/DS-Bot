@@ -26,14 +26,6 @@ class BaseEvent(metaclass=ABCMeta):
         Must be implemented in subclass.
         '''
         pass
-
-class on_ready(BaseEvent):
-    '''
-    Synchronize the commands.
-    '''
-    async def action(self):
-        await self.bot.tree.sync(guild=discord.Object(self.config['server_id']))
-        print('Ready!')
     
 class on_member_join(BaseEvent):
     '''
