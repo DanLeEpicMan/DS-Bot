@@ -1,4 +1,7 @@
 import discord
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
 import gspread
 import json
 from datetime import datetime as dt
@@ -30,3 +33,13 @@ def check_member_status(member: discord.Member) -> bool:
     query = member.name if member.discriminator == '0' else f'{member.name}#{member.discriminator}' # to allow for legacy users
     return query in GC.users
     
+
+# scraping
+async def scrape(url: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            html = await response.text()
+            soup = BeautifulSoup(html, 'html.parser')
+        print(soup.prettify())
+
+asyncio.run(scrape('https://in.indeed.com/jobs?q=data+scientist&l=Stevenson+Ranch%2C+CA&sc=0kf%3Aexplvl%28ENTRY_LEVEL%29%3B&vjk=0161ce808f8a8955'))

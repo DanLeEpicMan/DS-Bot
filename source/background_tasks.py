@@ -20,6 +20,11 @@ class BaseBackgroundTask(metaclass=ABCMeta):
         self.bot = bot
         self.config = config
 
-    @tasks.loop()
+    @tasks.loop(hours=24)
     async def action(self):
         raise NotImplementedError(f'{self.__class__.__name__} failed to implement action.')
+    
+class IndeedScraper(BaseBackgroundTask):
+    @tasks.loop(hours=1)
+    async def action(self):
+        pass
