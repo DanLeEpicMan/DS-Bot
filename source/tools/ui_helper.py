@@ -7,10 +7,16 @@ def generate_embed(embed_dict: dict) -> Embed:
     Creates an Embed object using the given dictionary. The dictionary has no required values, and every key is optional (may be absent or assigned to `None`).\n
     Note the following type requirements for each key. See the official Embed documentation for more info.
     ```python
-    str: title, description, url, image, thumbnail
-    int: color
-    dict: author, footer
-    List[dict]: fields
+    author: dict
+    color: int
+    description: str
+    fields: list[dict]
+    footer: dict
+    image: str
+    thumbnail: str
+    timestamp: datetime
+    title: str
+    url: str
     ```
     '''
     # safe_keys refers to what you can pass in Embed's initializer directly, unsafe_keys refers to the attributes that may only be modified via methods.
