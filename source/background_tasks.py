@@ -30,6 +30,38 @@ class Scraper(BaseBackgroundTask):
     def __init__(self, *, bot: commands.Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         self.channel = None
+        self.color_keys = {
+            'Data Analyst': 0xd1ad0d,
+            'Data Scientist': 0x2b5fb3
+        }
+
+    def parse_insights(self, insights: list[str]) -> list[dict]:
+        '''
+        Given an insight from LinkedIn, parse it into a fields list.
+        '''
+        fields = [
+            {
+                'name': 'Salary & Job Type' if '$' in insights[0] else 'Job Type', # include 'Salary' in title if the salary is given
+                'value': insights[0].replace(' (from job description)', '') # remove the "from job desc" bit
+            },
+            {
+                'name': 'Size & Industry',
+                'value': insights[1]
+            }
+        ]
+        for insight in insights[2:]: # first two elements are always the same
+            if 'alum' in insight:
+                fields.append({
+                    'name': 'Alumni',
+                    'value': insight
+                })
+            elif 'Skills' in insight:
+                fields.append({
+                    'name': 'Skills',
+                    'value': insight[8:] # skips 'Skills: '
+                })
+
+        return fields
 
     @tasks.loop(hours=168)
     async def action(self):
@@ -38,15 +70,19 @@ class Scraper(BaseBackgroundTask):
 
         jobs = await self.bot.loop.run_in_executor(None, scrape)
         for job in jobs:
-            generate_embed
-            embed = {
-                'title': job.title,
-                'description': job.description if len(job.description) < 256 else job.description[:253] + "...",
-                'url': job.link,
-                'footer': {
-                    'text': job.company,
+            await self.channel.send(embed=generate_embed({
+                'author': {
+                    'name': job.company,
+                    'url': job.company_link,
                     'icon_url': job.company_img_link
                 },
-                'color': 0x2b5fb3
-            }
-            await self.channel.send(embed=generate_embed(embed))
+                'color': self.color_keys.get(job.query, 0x072c59),
+                'title': job.title,
+                'fields': [{
+                    'name': 'Location',
+                    'value': job.place
+                }] + self.parse_insights(job.insights),
+                'url': job.link,
+                'timestamp': dt.fromisoformat(job.date)
+            }))
+            await asyncio.sleep(0.5)

@@ -7,11 +7,24 @@ def generate_embed(embed_dict: dict) -> Embed:
     Creates an Embed object using the given dictionary. The dictionary has no required values, and every key is optional (may be absent or assigned to `None`).\n
     Note the following type requirements for each key. See the official Embed documentation for more info.
     ```python
-    author: dict
+    author: dict {
+        'name': str,
+        'url': str,
+        'icon_url': str
+    }
     color: int
     description: str
-    fields: list[dict]
-    footer: dict
+    fields: list[dict] [
+        {
+            'name': str,
+            'value': str,
+            'inline': bool (Defaults to False)
+        }
+    ]
+    footer: dict {
+        'text': str,
+        'icon_url': str
+    }
     image: str
     thumbnail: str
     timestamp: datetime
@@ -43,7 +56,7 @@ def generate_embed(embed_dict: dict) -> Embed:
                     embed.add_field(
                         name=item['name'],
                         value=item['value'],
-                        inline=item.get('inline')
+                        inline=item.get('inline', False)
                     )
             case 'footer' if isinstance(value, dict):
                 embed.set_footer(

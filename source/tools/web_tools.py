@@ -43,23 +43,50 @@ def check_member_status(member: discord.Member) -> bool:
 #               Scraping
 # ---------------------------------------
 
-DEFAULT_QUERY = Query(
-    query='Data Analyst',
-    options=QueryOptions(
-        locations=['California'],
-        skip_promoted_jobs=True,  # Skip promoted jobs. Default to False.
-        page_offset=2,  # How many pages to skip
-        limit=2, # number of jobs to scrape
-        filters=QueryFilters(              
-            relevance=RelevanceFilters.RECENT,
-            time=TimeFilters.MONTH,
-            type=[TypeFilters.FULL_TIME, TypeFilters.INTERNSHIP],
-            experience=[ExperienceLevelFilters.INTERNSHIP, ExperienceLevelFilters.ENTRY_LEVEL]
+DEFAULT_QUERY = [
+    Query(
+        query='Data Analyst',
+        options=QueryOptions(
+            locations=['California'],
+            skip_promoted_jobs=True,  # Skip promoted jobs. Default to False.
+            page_offset=1,  # How many pages to skip
+            limit=2, # number of jobs to scrape
+            filters=QueryFilters(              
+                relevance=RelevanceFilters.RECENT,
+                time=TimeFilters.WEEK,
+                type=[TypeFilters.FULL_TIME, TypeFilters.INTERNSHIP],
+                experience=[ExperienceLevelFilters.INTERNSHIP, ExperienceLevelFilters.ENTRY_LEVEL]
+            )
+        )
+    ),
+    Query(
+        query='Data Scientist',
+        options=QueryOptions(
+            locations=['California'],
+            skip_promoted_jobs=True,
+            page_offset=1,  # How many pages to skip
+            limit=2, # number of jobs to scrape
+            filters=QueryFilters(              
+                relevance=RelevanceFilters.RECENT,
+                time=TimeFilters.WEEK,
+                type=[TypeFilters.FULL_TIME, TypeFilters.INTERNSHIP],
+                experience=[ExperienceLevelFilters.INTERNSHIP, ExperienceLevelFilters.ENTRY_LEVEL]
+            )
         )
     )
-)
+]
 
-def scrape(*, query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
+class _StatusTracker:
+    '''
+    To track the number of completed queries
+    '''
+    def __init__(self) -> None:
+        self.queries_finished = 0
+        
+    def done(self):
+        self.queries_finished += 1
+
+def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
     '''
     Returns a list of EventData scraped from LinkedIn using the given query (or list of queries).
 
@@ -68,16 +95,16 @@ def scrape(*, query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
 
     If no query is provided, then the following default query is used
     ```
-    search = 'Data Analyst'
+    query = 'Data Analyst', 'Data Scientist'
     locations = 'California'
-    skip_promoted = True
-    start_page = 2
-    jobs_to_collect = 2
+    skip_promoted_jobs = True
+    page_offset = 2
+    limit = 2 each (4 total)
     filters = {
-        Sort By = 'MOST RECENT'
-        Date Posted = 'PAST MONTH'
-        Experience Level = 'INTERNSHIP', 'ENTRY LEVEL'
-        Job Type = 'INTERNSHIP', 'FULL TIME'
+        relevance = 'MOST RECENT'
+        time = 'PAST WEEK'
+        experience = 'INTERNSHIP', 'ENTRY LEVEL'
+        type = 'INTERNSHIP', 'FULL TIME'
     }
     ```
     '''
@@ -89,30 +116,24 @@ def scrape(*, query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
         slow_mo=30,  # Slow down (in seconds)
         page_load_timeout=40  
     )
-    # create a 'StatusTracker', whose sole purpose is to hold a boolean
-    # and modify said boolean from False to True
-    class StatusTracker:
-        finished = False
-        def done(self):
-            self.finished = True
 
     # set up relevant events
-    status = StatusTracker()
+    status = _StatusTracker()
 
     def on_data(item: EventData):
         print('[ON DATA]', item.title)
         jobs.append(item)
 
     def on_end():
-        print('[END SCRAPING]')
+        print('[END QUERY]')
         status.done()
 
     scraper.on(Events.DATA, on_data)
     scraper.on(Events.END, on_end)
-
     scraper.run(queries=query)
 
-    while not status.finished:
+    while status.queries_finished != len(query):
         sleep(10)
     
+    print('[END SCRAPING]')
     return jobs
