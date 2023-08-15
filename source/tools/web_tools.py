@@ -2,9 +2,9 @@ import discord
 import asyncio
 import aiohttp
 import json
+import gspread
 from datetime import datetime as dt
 from time import sleep
-import gspread
 from linkedin_jobs_scraper import LinkedinScraper as Scraper
 from linkedin_jobs_scraper.events import Events, EventData
 from linkedin_jobs_scraper.query import Query, QueryFilters, QueryOptions
@@ -43,37 +43,26 @@ def check_member_status(member: discord.Member) -> bool:
 #               Scraping
 # ---------------------------------------
 
+with open('secrets/scraper_config.json') as file:
+    SCRAPER_CONFIG = json.load(file)
+
 DEFAULT_QUERY = [
     Query(
-        query='Data Analyst',
+        query=query['search'],
         options=QueryOptions(
-            locations=['California'],
-            skip_promoted_jobs=True,  # Skip promoted jobs. Default to False.
-            page_offset=1,  # How many pages to skip
-            limit=2, # number of jobs to scrape
-            filters=QueryFilters(              
-                relevance=RelevanceFilters.RECENT,
-                time=TimeFilters.WEEK,
-                type=[TypeFilters.FULL_TIME, TypeFilters.INTERNSHIP],
-                experience=[ExperienceLevelFilters.INTERNSHIP, ExperienceLevelFilters.ENTRY_LEVEL]
-            )
-        )
-    ),
-    Query(
-        query='Data Scientist',
-        options=QueryOptions(
-            locations=['California'],
-            skip_promoted_jobs=True,
-            page_offset=1,  # How many pages to skip
-            limit=2, # number of jobs to scrape
-            filters=QueryFilters(              
-                relevance=RelevanceFilters.RECENT,
-                time=TimeFilters.WEEK,
-                type=[TypeFilters.FULL_TIME, TypeFilters.INTERNSHIP],
-                experience=[ExperienceLevelFilters.INTERNSHIP, ExperienceLevelFilters.ENTRY_LEVEL]
+            locations=query['locations'],
+            skip_promoted_jobs=query['skip_promoted'],
+            page_offset=query['pages_to_skip'],
+            limit=query['amount_to_scrape'],
+            filters=QueryFilters(
+                relevance=getattr(RelevanceFilters, query['relevance']),
+                time=getattr(TimeFilters, query['time']),
+                type=[getattr(TypeFilters, item) for item in query['type']],
+                experience=[getattr(ExperienceLevelFilters, item) for item in query['experience']]
             )
         )
     )
+    for query in SCRAPER_CONFIG['queries']
 ]
 
 class _StatusTracker:
@@ -93,28 +82,15 @@ def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
     Note that this is a synchronous function, since the scraper package is built with `requests`.
     It's advisable to run this in a background thread.
 
-    If no query is provided, then the following default query is used
-    ```
-    query = 'Data Analyst', 'Data Scientist'
-    locations = 'California'
-    skip_promoted_jobs = True
-    page_offset = 2
-    limit = 2 each (4 total)
-    filters = {
-        relevance = 'MOST RECENT'
-        time = 'PAST WEEK'
-        experience = 'INTERNSHIP', 'ENTRY LEVEL'
-        type = 'INTERNSHIP', 'FULL TIME'
-    }
-    ```
+    If no query is provided, then the default query found in `secrets/scraper_config.json` is used.
     '''
     # set up some variables
     jobs = []
     scraper = Scraper(
-        chrome_executable_path=r'driver/chromedriver', 
-        max_workers=1, 
-        slow_mo=30,  # Slow down (in seconds)
-        page_load_timeout=40  
+        chrome_executable_path=SCRAPER_CONFIG['chromedriver'], 
+        max_workers=SCRAPER_CONFIG['concurrent_chrome_instances'], 
+        slow_mo=SCRAPER_CONFIG['http_slow_down'],  # Slow down (in seconds)
+        page_load_timeout=SCRAPER_CONFIG['page_load_timeout']  
     )
 
     # set up relevant events
@@ -133,7 +109,7 @@ def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
     scraper.run(queries=query)
 
     while status.queries_finished != len(query):
-        sleep(10)
+        sleep(SCRAPER_CONFIG['sleep_duration'])
     
     print('[END SCRAPING]')
     return jobs

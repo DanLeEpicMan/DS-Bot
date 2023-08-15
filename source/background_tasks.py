@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import json
 from discord.ext import tasks, commands
 from abc import ABCMeta, abstractmethod
 from datetime import datetime as dt, time
@@ -30,26 +31,54 @@ class Scraper(BaseBackgroundTask):
     def __init__(self, *, bot: commands.Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         self.channel = None
+        with open('secrets/scraper_config.json') as file:
+            SCRAPER_CONFIG = json.load(file)
+
         self.color_keys = {
-            'Data Analyst': 0xd1ad0d,
-            'Data Scientist': 0x2b5fb3
+            query['search']: int(query['embed_color'], base=16)
+            for query in SCRAPER_CONFIG['queries']
         }
+        self.default_color = int(SCRAPER_CONFIG['default_embed_color'], base=16)
 
     def parse_insights(self, insights: list[str]) -> list[dict]:
         '''
         Given an insight from LinkedIn, parse it into a fields list.
         '''
-        fields = [
-            {
-                'name': 'Salary & Job Type' if '$' in insights[0] else 'Job Type', # include 'Salary' in title if the salary is given
-                'value': insights[0].replace(' (from job description)', '') # remove the "from job desc" bit
-            },
-            {
-                'name': 'Size & Industry',
-                'value': insights[1]
-            }
-        ]
-        for insight in insights[2:]: # first two elements are always the same
+        fields = []
+
+        # first parse salary and job type
+        if '$' in insights[0]: # if the salary is given
+            salary_and_job = insights[0].split(' · ', 1)
+            fields.append({
+                'name': 'Salary',
+                'value': salary_and_job[0].replace(' (from job description)', '') # remove the "from job desc" bit
+            })
+            fields.append({
+                'name': 'Job Type',
+                'value': salary_and_job[1]
+            })
+        else:
+            fields.append({
+                'name': 'Job Type',
+                'value': insights[0]
+            })
+
+        # next, parse size and industry
+        size_and_industry = insights[1].split(' · ', 1) # this can be of varying sizes, so a for-loop is necessary
+        for item in size_and_industry:
+            if 'employee' in item:
+                fields.append({
+                    'name': 'Size',
+                    'value': item
+                })
+            else:
+                fields.append({
+                    'name': 'Industry',
+                    'value': item
+                })
+
+        # finally, parse remaining information that might not always be present
+        for insight in insights[2:]:
             if 'alum' in insight:
                 fields.append({
                     'name': 'Alumni',
@@ -70,18 +99,21 @@ class Scraper(BaseBackgroundTask):
 
         jobs = await self.bot.loop.run_in_executor(None, scrape)
         for job in jobs:
+            fields = [
+                {
+                    'name': 'Location',
+                    'value': job.place
+                }
+            ] + self.parse_insights(job.insights)
             await self.channel.send(embed=generate_embed({
                 'author': {
                     'name': job.company,
                     'url': job.company_link,
                     'icon_url': job.company_img_link
                 },
-                'color': self.color_keys.get(job.query, 0x072c59),
+                'color': self.color_keys.get(job.query, self.default_color),
                 'title': job.title,
-                'fields': [{
-                    'name': 'Location',
-                    'value': job.place
-                }] + self.parse_insights(job.insights),
+                'fields': fields,
                 'url': job.link,
                 'timestamp': dt.fromisoformat(job.date)
             }))
