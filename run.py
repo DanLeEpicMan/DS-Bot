@@ -7,13 +7,10 @@ from source.events import BaseEvent
 from source.persistent_ui import BasePersistentUI
 from source.background_tasks import BaseBackgroundTask
 
-TEST_MODE = True
-
 
 # load the config file, create relevant objects
-config = json.load(open(
-    'secrets/test_config.json' if TEST_MODE else 'secrets/config.json'
-))
+with open('secrets/config.json') as file:
+    config = json.load(file)
 guild = discord.Object(config['server_id'])
 
 # create bot instances
