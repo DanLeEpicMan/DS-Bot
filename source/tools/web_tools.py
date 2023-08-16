@@ -54,6 +54,7 @@ DEFAULT_QUERY = [
             skip_promoted_jobs=query['skip_promoted'],
             page_offset=query['pages_to_skip'],
             limit=query['amount_to_scrape'],
+            apply_link=query['get_apply_link'],
             filters=QueryFilters(
                 relevance=getattr(RelevanceFilters, query['relevance']),
                 time=getattr(TimeFilters, query['time']),
@@ -75,6 +76,13 @@ class _StatusTracker:
     def done(self):
         self.queries_finished += 1
 
+SCRAPER = Scraper(
+    chrome_executable_path=SCRAPER_CONFIG['chromedriver'], 
+    max_workers=SCRAPER_CONFIG['concurrent_chrome_instances'], 
+    slow_mo=SCRAPER_CONFIG['http_slow_down'],  # Slow down (in seconds)
+    page_load_timeout=SCRAPER_CONFIG['page_load_timeout']  
+)
+
 def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
     '''
     Returns a list of EventData scraped from LinkedIn using the given query (or list of queries).
@@ -86,12 +94,6 @@ def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
     '''
     # set up some variables
     jobs = []
-    scraper = Scraper(
-        chrome_executable_path=SCRAPER_CONFIG['chromedriver'], 
-        max_workers=SCRAPER_CONFIG['concurrent_chrome_instances'], 
-        slow_mo=SCRAPER_CONFIG['http_slow_down'],  # Slow down (in seconds)
-        page_load_timeout=SCRAPER_CONFIG['page_load_timeout']  
-    )
 
     # set up relevant events
     status = _StatusTracker()
@@ -101,12 +103,15 @@ def scrape(query: Query | list[Query] = DEFAULT_QUERY) -> list[EventData]:
         jobs.append(item)
 
     def on_end():
-        print('[END QUERY]')
+        if isinstance(query, Query):
+            print('[END QUERY]', query.query)
+        else:
+            print('[END QUERY]', query[status.queries_finished].query)
         status.done()
 
-    scraper.on(Events.DATA, on_data)
-    scraper.on(Events.END, on_end)
-    scraper.run(queries=query)
+    SCRAPER.on(Events.DATA, on_data)
+    SCRAPER.on(Events.END, on_end)
+    SCRAPER.run(queries=query)
 
     while status.queries_finished != len(query):
         sleep(SCRAPER_CONFIG['sleep_duration'])

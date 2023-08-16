@@ -99,13 +99,7 @@ class Scraper(BaseBackgroundTask):
 
         jobs = await self.bot.loop.run_in_executor(None, scrape)
         for job in jobs:
-            fields = [
-                {
-                    'name': 'Location',
-                    'value': job.place
-                }
-            ] + self.parse_insights(job.insights)
-            await self.channel.send(embed=generate_embed({
+            embed = generate_embed({
                 'author': {
                     'name': job.company,
                     'url': job.company_link,
@@ -113,8 +107,26 @@ class Scraper(BaseBackgroundTask):
                 },
                 'color': self.color_keys.get(job.query, self.default_color),
                 'title': job.title,
-                'fields': fields,
-                'url': job.link,
-                'timestamp': dt.fromisoformat(job.date)
-            }))
+                'fields': [{
+                    'name': 'Location',
+                    'value': job.place
+                }] + self.parse_insights(job.insights),
+                'url': job.link
+            })
+
+            view = None
+            if job.apply_link: # if it's not empty
+                class ApplyView(discord.ui.View):
+                    '''
+                    This isn't included in `persistent_ui` because
+                    Discord automatically handles URL buttons, all you need
+                    to do is make them.
+                    
+                    Also it's just easiest to include this here.
+                    '''
+                    pass
+
+                view = ApplyView(timeout=None).add_item(discord.ui.Button(label='Apply', url=job.apply_link))
+
+            await self.channel.send(embed=embed, view=view)
             await asyncio.sleep(0.5)
