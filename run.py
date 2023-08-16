@@ -31,7 +31,7 @@ for event_class in BaseEvent.__subclasses__():
     try:
         event = event_class(bot=bot, config=config)
     except TypeError as e:
-        raise NotImplementedError(f'{cmd_class.__name__} failed to implement action method') from e
+        raise NotImplementedError(f'{event_class.__name__} failed to implement action method') from e
 
     setattr(bot, event.event, event.action)
 
@@ -49,7 +49,7 @@ async def setup_hook():
 # sync commands and start background tasks
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=discord.Object(config['server_id']))
+    await bot.tree.sync(guild=guild)
     for task_class in BaseBackgroundTask.__subclasses__():
         task = task_class(bot=bot, config=config)
         task.action.start()
