@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import json
+import re
 from discord.ext import tasks, commands
 from abc import ABCMeta, abstractmethod
 from datetime import datetime as dt, time
@@ -106,7 +107,7 @@ class Scraper(BaseBackgroundTask):
                     'icon_url': job.company_img_link
                 },
                 'color': self.color_keys.get(job.query, self.default_color),
-                'title': job.title,
+                'title': ' '.join(re.sub(r'\([^)]*\)|[\-\|\/\\](.*)', '', job.title).split()), # regex removes everything between parentheses, and everything after -|/\
                 'fields': [{
                     'name': 'Location',
                     'value': job.place
