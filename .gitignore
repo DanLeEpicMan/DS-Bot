@@ -2,6 +2,7 @@
 secrets/
 .vscode/
 *.json
+*.key
 ad_hoc.py
 
 # Python Boilerplate
