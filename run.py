@@ -56,4 +56,4 @@ async def on_ready():
     print('Ready!')
 
 # finally, run the bot.
-bot.run(os.environ['DS-OAUTH-KEY'])
+bot.run(os.environ['DS_OAUTH_KEY'])
