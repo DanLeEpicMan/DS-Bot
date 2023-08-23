@@ -7,7 +7,7 @@ from source.tools.web_tools import check_member_status
 class BaseEvent(metaclass=ABCMeta):
     '''
     Base event class that all event listeners should inherit from.
-    ### Class Attributes (No setup required)
+    ### Attributes (No setup required)
       `event`: The event to listen to (see discord.py docs). Defaults to name of subclass.\n
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.

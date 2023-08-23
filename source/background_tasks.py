@@ -7,7 +7,7 @@ class BaseBackgroundTask(metaclass=ABCMeta):
     Base class that all background tasks should inherit from.\n
     A background task is a script executed at regular intervals,
     as opposed to needing to be invoked by a user.
-    ### Class Attributes (no setup required)
+    ### Attributes (no setup required)
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
     ### Setup Required
