@@ -16,7 +16,7 @@ class BaseEvent(metaclass=ABCMeta):
       
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
-        self.event = self.__class__.__name__
+        self.event = getattr(self, 'event', self.__class__.__name__)
         self.bot = bot
         self.config = config
 

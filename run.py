@@ -1,9 +1,10 @@
 import json
 import os
 import discord
-from discord.app_commands import Command, Group, guild_only
+from discord.app_commands import Command, Group, ContextMenu, guild_only
 from discord.ext import commands
 from source.slash_commands import BaseCommand, BaseGroup
+from source.context_menu import BaseContextMenu
 from source.events import BaseEvent
 from source.persistent_ui import BasePersistentUI
 from source.background_tasks import BaseBackgroundTask
@@ -48,14 +49,25 @@ for group_class in BaseGroup.__subclasses__():
     
     tree.add_command(guild_group, guild=guild)
 
-
-
 for cmd_class in BaseCommand.__subclasses__():
     if cmd_class._is_registered: continue
 
     cmd = check_implementation(cmd_class, bot=bot, config=config)
     tree.add_command(
         GuildCommand(name=cmd.name, description=cmd.desc, callback=cmd.action), 
+        guild=guild
+    )
+
+@guild_only
+class GuildContext(ContextMenu):
+    pass
+
+# set up context menus
+for ctx_class in BaseContextMenu.__subclasses__():
+    ctx = check_implementation(ctx_class, bot=bot, config=config)
+    
+    tree.add_command(
+        GuildContext(name=ctx.name, callback=ctx.action),
         guild=guild
     )
 

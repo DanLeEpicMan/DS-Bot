@@ -1,8 +1,8 @@
+from abc import ABCMeta, abstractmethod
 import discord
 from discord.app_commands import describe, rename
 from discord.ext.commands import Bot
-from abc import ABCMeta, abstractmethod
-from source.tools.ui_helper import generate_embed
+from source.tools.ui_helper import generate_embed, make_fail_embed
 
 
 class BaseCommand(metaclass=ABCMeta):
@@ -10,7 +10,8 @@ class BaseCommand(metaclass=ABCMeta):
     The base class that all server commands are expected to inherit from.\n
     If you wish to add a description or rename a command, please use the `describe`
     or `rename` decorators, respectively.
-    ### Attributes (No setup required)
+    ## Attributes
+    ### No Setup Required
       `name`: The name of the command. Defaults to the name of the subclass.\n
       `desc`: The description of the command. Defaults to the docstring of the subclass.\n
       `bot`: The `commands.Bot` instance of the bot.\n
@@ -21,8 +22,8 @@ class BaseCommand(metaclass=ABCMeta):
     _is_registered = False
 
     def __init__(self, *, bot: Bot, config: dict) -> None:
-        self.name: str = self.__class__.__name__
-        self.desc: str = self.__class__.__doc__
+        self.name: str = getattr(self, 'name', self.__class__.__name__)
+        self.desc: str = getattr(self, 'desc', self.__class__.__doc__)
         self.bot: Bot = bot
         self.config: dict = config
 
@@ -44,16 +45,16 @@ class BaseGroup(metaclass=ABCMeta):
     ```
     Subgroups are not supported. I'll redesign this class if I ever need them.
 
-    ## Attributes (
-    ### No setup required
+    ## Attributes
+    ### No Setup Required
       `name`: The name of the group. Defaults to the name of the subclass.\n
       `desc`: The description of the group. Defaults to the docstring of the subclass.
-    ### Setup required
+    ### Setup Required
       `commands`: The commands belonging to this group.
     '''
     def __init__(self) -> None:
-        self.name: str = self.__class__.__name__
-        self.desc: str = self.__class__.__doc__
+        self.name: str = getattr(self, 'name', self.__class__.__name__)
+        self.desc: str = getattr(self, 'desc', self.__class__.__doc__)
 
     @property
     @abstractmethod
@@ -77,10 +78,8 @@ class message_send(BaseCommand):
     It was easier to design the `edit` portion as a context menu command 
     due to its place in Discord, and due to Discord limitations.
     '''
-    def __init__(self, *, bot: Bot, config: dict) -> None:
-        super().__init__(bot=bot, config=config)
-        self.name = 'send'
-        self.desc = 'Send a message through the bot.'
+    name = 'send'
+    desc = 'Send a message through the bot.'
 
     @describe(
         content="The content of the message. Required if title and desc aren't given.",
@@ -103,9 +102,8 @@ class message_send(BaseCommand):
         mimic: discord.Member = None
     ) -> None:
         
-        result = self.sanity_checks(content=content, title=title, description=description, color=color, params=locals())
-        if result is not None:
-            return await interaction.response.send_message(embed=result, ephemeral=True)
+        if not await self.input_sanity_checks(interaction=interaction, content=content, title=title, description=description, color=color, params=locals()):
+            return
         
         embed = generate_embed({
             'title': title,
@@ -134,7 +132,9 @@ class message_send(BaseCommand):
                 return webhook
         return await channel.create_webhook(name='DS-CustomMessages', reason="For the DS-UCSB bot. Don't touch!")
     
-    def sanity_checks(self, 
+    async def input_sanity_checks(self, 
+        *,
+        interaction: discord.Interaction,
         content: str, 
         title: str, 
         description: str,
@@ -145,45 +145,28 @@ class message_send(BaseCommand):
         Perform sanity checks on given input.
         '''
         if not content and (not title or not description):
-            return self.make_fail_embed(
+            await interaction.response.send_message(embed=make_fail_embed(
                 title='ERROR', 
                 msg='You must provide either `content` or `title` AND `desc`.',
-                color=0xdb1a1a,
                 args=params
-            )
+            ), ephemeral=True)
+            return False
         
         try:
-            color = int(color, base=16)
+            int(color, base=16)
         except ValueError:
-            return self.make_fail_embed(
+            await interaction.response.send_message(embed=make_fail_embed(
                 title='ERROR', 
                 msg=f'{color} is an invalid color.',
-                color=0xdb1a1a,
                 args=params
-            )
+            ), ephemeral=True)
+            return False
         
         if bool(title) != bool(description): # if one is given but other is missing
-            return self.make_fail_embed(
-                title='Warning', 
+            await interaction.response.send_message(embed=make_fail_embed(
+                title='ERROR', 
                 msg='Failed to send embed since either `title` or `description` was missing.',
-                color=0xeed202,
                 args=params
-            )
-        return None
-    
-    def make_fail_embed(*, title: str, msg: str, color: int, args: dict):
-        '''
-        Return an embed displaying a failure. Used by both 'edit' and 'send'
-        '''
-        return generate_embed({
-            'title': title,
-            'description': msg,
-            'color': color,
-            'fields': [
-                {
-                    'name': key,
-                    'value': repr(param)
-                }
-                for key, param in args.items() if param and isinstance(param, (str, int, discord.Member))
-            ]
-        })
+            ), ephemeral=True)
+            return False
+        return True
