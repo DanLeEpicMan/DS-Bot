@@ -19,7 +19,7 @@ class BasePersistentUI(metaclass=ABCMeta):
     Persistent UI refers to `Buttons` that must always be active.\n
     While related, this is **not** a background task, since this
     needs to be invoked by a user. 
-    ### Class Attributes (No setup required)
+    ### Attributes (No setup required)
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
     ### Setup Required
