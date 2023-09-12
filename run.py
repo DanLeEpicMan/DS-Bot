@@ -1,5 +1,4 @@
 import json
-import os
 import discord
 from discord.app_commands import Command, Group, ContextMenu, guild_only
 from discord.ext import commands
@@ -92,5 +91,8 @@ async def on_ready():
         task.action.start()
     print('Ready!')
 
-# finally, run the bot.
-bot.run(os.environ['DS_OAUTH_KEY'])
+# finally, run the bot
+with open('secrets/bot_key.json') as file:
+    key = json.load(file)['key']
+
+bot.run(key)
