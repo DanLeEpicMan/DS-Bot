@@ -61,7 +61,7 @@ class message_edit(BaseContextMenu):
             Until I can think of a good implementation of a helper method,
             this will be created here.
             '''
-            content = ui.TextInput(label='Message Content', placeholder="Content of the message.", style=discord.TextStyle.long, required=False)
+            content = ui.TextInput(label='Message Content', placeholder="Content of the message. Input 'remove' to delete the content.", style=discord.TextStyle.long, required=False)
             embed_title = ui.TextInput(label='Embed Title', placeholder="Title of the embed.", required=False) # 'title' is already taken :(
             description = ui.TextInput(label='Embed Description', placeholder="Description of the embed.", style=discord.TextStyle.long, required=False)
             color = ui.TextInput(label='Embed Color', placeholder="The hexcode to use for the embed's color.", required=False)
@@ -101,16 +101,17 @@ class message_edit(BaseContextMenu):
                         'url': url
                     })
 
+                content = None if content.lower() == 'remove' else content or message.content
                 if hook is not None:
                     # you can't edit the webhook message directly without being thrown a forbidden error
                     await hook.edit_message(
                         message.id, 
-                        content=content or message.content,
+                        content=content,
                         embed=embed
                     )
                 else:
                     await message.edit(
-                        content=content or message.content,
+                        content=content,
                         embed=embed
                     )
                 await interaction.response.send_message('Success!', ephemeral=True)
@@ -124,6 +125,15 @@ class message_edit(BaseContextMenu):
             await interaction.response.send_message(embed=make_fail_embed(
                 title='ERROR', 
                 msg='Please input something.',
+                args=params
+            ), ephemeral=True)
+            return False
+        
+        # if the user tries to remove content while the message has no embed
+        if content.lower() == 'remove' and not message.embeds:
+            await interaction.response.send_message(embed=make_fail_embed(
+                title='ERROR', 
+                msg="Can't remove the content of a message without an embed.",
                 args=params
             ), ephemeral=True)
             return False

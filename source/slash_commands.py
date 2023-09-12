@@ -109,7 +109,7 @@ class message_send(BaseCommand):
             'title': title,
             'description': description,
             'image': image,
-            'color': color,
+            'color': int(color, base=16),
             'url': url
         }) if title and description else None
 
@@ -144,6 +144,7 @@ class message_send(BaseCommand):
         '''
         Perform sanity checks on given input.
         '''
+        # user failed to provide content OR title and desc
         if not content and (not title or not description):
             await interaction.response.send_message(embed=make_fail_embed(
                 title='ERROR', 
@@ -152,6 +153,7 @@ class message_send(BaseCommand):
             ), ephemeral=True)
             return False
         
+        # test validity of the color
         try:
             int(color, base=16)
         except ValueError:
@@ -162,11 +164,13 @@ class message_send(BaseCommand):
             ), ephemeral=True)
             return False
         
-        if bool(title) != bool(description): # if one is given but other is missing
+        # if one is given but other is missing
+        if bool(title) != bool(description):
             await interaction.response.send_message(embed=make_fail_embed(
                 title='ERROR', 
                 msg='Failed to send embed since either `title` or `description` was missing.',
                 args=params
             ), ephemeral=True)
             return False
+        
         return True
