@@ -1,17 +1,11 @@
 import discord
 from discord import ui, ButtonStyle, SelectOption
+from discord.ui import View
 from discord.ext.commands import Bot
 from source.tools.ui_helper import generate_embed
 from abc import ABCMeta, abstractmethod
 from source.tools.web_tools import check_member_status
 
-
-class BaseView(ui.View):
-    '''
-    Sets the view to be persistent.
-    '''
-    def __init__(self, *, timeout: float | None = None):
-        super().__init__(timeout=timeout)
 
 class BasePersistentUI(metaclass=ABCMeta):
     '''
@@ -19,12 +13,16 @@ class BasePersistentUI(metaclass=ABCMeta):
     Persistent UI refers to `Buttons` that must always be active.\n
     While related, this is **not** a background task, since this
     needs to be invoked by a user. 
-    ### Attributes (No setup required)
+    ## Attributes
+    ### No Setup Required
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
     ### Setup Required
-      `message`: The ID of the message that the UI will attach itself to.\n
-      `view`: A `BaseView` object containing all UI objects.
+      `message`: The ID of the message that the UI will attach itself to.
+      **This must be an existing message with the UI already attached.**
+      Use an ad hoc script with empty callbacks to achieve this.\n
+      `view`: A `BaseView` object containing all UI objects. 
+      **Note that every component MUST have a custom id.**
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         self.bot = bot
@@ -40,7 +38,7 @@ class BasePersistentUI(metaclass=ABCMeta):
     
     @property
     @abstractmethod
-    def view(self) -> BaseView:
+    def view(self) -> type[View]:
         '''
         Must be overridden and return a subclass of `BaseView`
         '''
@@ -59,12 +57,12 @@ class Verify(BasePersistentUI):
         return self.config['verify_message']
     
     @property
-    def view(self) -> BaseView:
-        class VerifyView(BaseView):
+    def view(self) -> type[View]:
+        class VerifyView(View):
             @ui.button(
                 label='Verify', 
                 style=ButtonStyle.blurple,
-                custom_id='verify-button'
+                custom_id=f'verify-button-{self.config["server_id"]}'
             )
             async def verify(view_self, interaction: discord.Interaction, button: ui.Button):
                 await interaction.response.defer(ephemeral=True, thinking=True)
@@ -79,6 +77,12 @@ class Verify(BasePersistentUI):
         return VerifyView
 
 class ClassRoleMenu(BasePersistentUI):
+    '''
+    The menu to select class roles (Freshman, Sophomore, ...).
+    As much as I want to use the `RoleMenu` class, it displays every role in the server.
+    
+    To update existing roles, modify the 'roles_config' portion in the config file.
+    '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         self.roles = {
@@ -91,15 +95,15 @@ class ClassRoleMenu(BasePersistentUI):
         return self.config['roles_config']['role_message']
     
     @property
-    def view(self) -> BaseView:
-        class RoleMenu(BaseView):
+    def view(self) -> type[View]:
+        class RoleMenu(View):
             @ui.select(
                 options=[
                     SelectOption(label=name)
                     for name in self.roles
                 ],
                 placeholder='Choose your current class year!',
-                custom_id='role-menu'
+                custom_id=f'role-menu-{self.config["server_id"]}'
             )
             async def select_role(view_self, interaction: discord.Interaction, menu: discord.ui.Select):
                 role = self.roles[menu.values[0]]
