@@ -80,7 +80,7 @@ for event_class in BaseEvent.__subclasses__():
 async def setup_hook():
     for ui_class in BasePersistentUI.__subclasses__():
         ui = check_implementation(ui_class, bot=bot, config=config)
-        bot.add_view(ui.view(), message_id=ui.message)
+        bot.add_view(ui.view(timeout=None), message_id=ui.message)
 
 # sync commands and start background tasks
 @bot.event

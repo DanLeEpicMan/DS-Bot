@@ -13,6 +13,11 @@ class BasePersistentUI(metaclass=ABCMeta):
     Persistent UI refers to `Buttons` that must always be active.\n
     While related, this is **not** a background task, since this
     needs to be invoked by a user. 
+
+    **Note**: The UI must already exist in Discord in order for
+    the library to attach a listener. See the comment under the
+    `message` attribute.
+
     ## Attributes
     ### No Setup Required
       `bot`: The `commands.Bot` instance of the bot.\n
@@ -81,18 +86,18 @@ class ClassRoleMenu(BasePersistentUI):
     The menu to select class roles (Freshman, Sophomore, ...).
     As much as I want to use the `RoleMenu` class, it displays every role in the server.
     
-    To update existing roles, modify the 'roles_config' portion in the config file.
+    To update existing roles, modify the 'class_roles_config' portion in the config file.
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         self.roles = {
             name: discord.Object(role_id)
-            for name, role_id in self.config['roles_config']['class_roles'].items()
+            for name, role_id in self.config['class_roles_config']['roles'].items()
         }
 
     @property
     def message(self) -> int:
-        return self.config['roles_config']['role_message']
+        return self.config['class_roles_config']['message_id']
     
     @property
     def view(self) -> type[View]:
@@ -112,3 +117,34 @@ class ClassRoleMenu(BasePersistentUI):
                 await interaction.response.send_message(f'Successfully gave you {menu.values[0]}', ephemeral=True)
 
         return RoleMenu
+
+class AnnouncementButton(BasePersistentUI):
+    '''
+    A button giving a self-assignable role for announcements.
+    '''
+    def __init__(self, *, bot: Bot, config: dict) -> None:
+        super().__init__(bot=bot, config=config)
+        self.role = discord.Object(self.config['announcement_role_config']['role'])
+
+    @property
+    def message(self) -> int:
+        return self.config['announcement_role_config']['message_id']
+    
+    @property
+    def view(self) -> type[View]:
+        class AnnounceButton(View):
+            @ui.button(
+                label='Opt In/Out',
+                style=ButtonStyle.red,
+                custom_id=f'announcement-button-{self.config["server_id"]}'
+            )
+            async def give_announce_role(view_self, interaction: discord.Interaction, button: ui.Button):
+                member = interaction.user
+                if member.get_role(self.role.id):
+                    await member.remove_roles(self.role)
+                    await interaction.response.send_message('Successfully opted out of announcements.', ephemeral=True)
+                else:
+                    await member.add_roles(self.role)
+                    await interaction.response.send_message('Successfully opted into announcements.', ephemeral=True)
+
+        return AnnounceButton
