@@ -188,9 +188,9 @@ class help(BaseCommand):
 
     async def action(self, cmd_interaction: Interaction) -> None:
         if self.help_channel is None:
-            self.help_channel = self.bot.get_guild(self.config['server_id']).get_channel(self.config['help_channel'])
+            self.help_channel = self.bot.get_channel(self.config['help_channel'])
         class SupportModal(ui.Modal, title='Help Form'):
-            brief = ui.TextInput(label='Title', placeholder='Briefly title your problem.')
+            brief = ui.TextInput(label='Title', placeholder='Briefly title your problem.', max_length=50)
             explain = ui.TextInput(label='Explanation', placeholder='Explain your problem in full. Please give as many details as possible.', style=discord.TextStyle.long)
             contact = ui.TextInput(label='Contact', placeholder='How should we reach out to you?', required=False)
 
