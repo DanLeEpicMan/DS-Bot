@@ -33,7 +33,7 @@ class on_member_join(BaseEvent):
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
-        self.member_role = discord.Object(config['member_role_id'])
+        self.member_role = discord.Object(config['verify_config']['role'])
     
     async def action(self, member: discord.Member):
         if check_member_status(member):
