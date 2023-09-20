@@ -15,7 +15,7 @@ with open('secrets/config.json') as file:
 guild = discord.Object(config['server_id'])
 
 # create bot instances
-bot = commands.Bot(command_prefix='$', intents=discord.Intents.all(), help_command=None)
+bot = commands.Bot(command_prefix='$', intents=discord.Intents.all(), help_command=None, activity=discord.CustomActivity('Type /help for support!'))
 tree = bot.tree
 
 def check_implementation(cls, **kwargs):

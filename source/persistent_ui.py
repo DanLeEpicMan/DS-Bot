@@ -55,11 +55,11 @@ class Verify(BasePersistentUI):
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
-        self.member_role = discord.Object(config['member_role_id'])
+        self.member_role = discord.Object(config['verify_config']['role'])
 
     @property
     def message(self) -> int:
-        return self.config['verify_message']
+        return self.config['verify_config']['message_id']
     
     @property
     def view(self) -> type[View]:
