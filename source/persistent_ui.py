@@ -77,14 +77,15 @@ class Verify(BasePersistentUI):
                     await member.add_roles(self.member_role)
                     await interaction.followup.send('Success!', ephemeral=True)
                 else:
-                    await interaction.followup.send("It doesn't seem like you're a member of Data Science UCSB. Please contact a board member if this is an error.", ephemeral=True)
+                    await interaction.followup.send("It doesn't seem like you're a member of Data Science UCSB. If you believe this is an error, open a ticket with the `/help` command.", ephemeral=True)
 
         return VerifyView
 
 class ClassRoleMenu(BasePersistentUI):
     '''
     The menu to select class roles (Freshman, Sophomore, ...).
-    As much as I want to use the `RoleMenu` class, it displays every role in the server.
+    As much as I want to use the `RoleMenu` class, I must use a default `SelectMenu`, 
+    since `RoleMenu` displays every role in the server and can't be changed.
     
     To update existing roles, modify the 'class_roles_config' portion in the config file.
     '''
