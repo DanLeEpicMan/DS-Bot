@@ -111,10 +111,11 @@ class ClassRoleMenu(BasePersistentUI):
                 custom_id=f'role-menu-{self.config["server_id"]}'
             )
             async def select_role(view_self, interaction: discord.Interaction, menu: discord.ui.Select):
+                await interaction.response.defer(ephemeral=True, thinking=True) # sometimes it takes a while to remove roles
                 role = self.roles[menu.values[0]]
                 await interaction.user.remove_roles(*self.roles.values())
                 await interaction.user.add_roles(role)
-                await interaction.response.send_message(f'Successfully gave you {menu.values[0]}', ephemeral=True)
+                await interaction.followup.send(f'Successfully gave you {menu.values[0]}', ephemeral=True)
 
         return RoleMenu
 
