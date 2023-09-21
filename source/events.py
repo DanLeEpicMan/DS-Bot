@@ -38,5 +38,3 @@ class on_member_join(BaseEvent):
     async def action(self, member: discord.Member):
         if check_member_status(member):
             await member.add_roles(self.member_role)
-        else:
-            await member.send("You're not a member!")
