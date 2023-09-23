@@ -5,6 +5,7 @@ from discord.ext.commands import Bot
 from source.tools.ui_helper import generate_embed
 from abc import ABCMeta, abstractmethod
 from source.tools.web_tools import check_member_status
+from source.shared_features import SupportModal
 
 
 class BasePersistentUI(metaclass=ABCMeta):
@@ -134,7 +135,7 @@ class AnnouncementButton(BasePersistentUI):
     
     @property
     def view(self) -> type[View]:
-        class AnnounceButton(View):
+        class AnnounceView(View):
             @ui.button(
                 label='Opt In/Out',
                 style=ButtonStyle.red,
@@ -149,4 +150,26 @@ class AnnouncementButton(BasePersistentUI):
                     await member.add_roles(self.role)
                     await interaction.response.send_message('Successfully opted into announcements.', ephemeral=True)
 
-        return AnnounceButton
+        return AnnounceView
+
+class HelpButton(BasePersistentUI):
+    '''
+    A button prompting a support ticket.
+    '''
+    @property
+    def message(self) -> int:
+        return self.config['help_config']['message_id']
+    
+    @property
+    def view(self) -> type[View]:
+        class HelpView(View):
+            @ui.button(
+                label='Help',
+                style=ButtonStyle.green,
+                custom_id=f'support-button-{self.config["server_id"]}'
+            )
+            async def help_button(view_self, interaction: discord.Interaction, button):
+                channel = self.bot.get_channel(self.config['help_config']['channel'])
+                await interaction.response.send_modal(SupportModal(channel=channel))
+
+        return HelpView
