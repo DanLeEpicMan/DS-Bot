@@ -5,6 +5,7 @@ from discord.app_commands import describe, rename
 from discord.ext.commands import Bot
 from discord.interactions import Interaction
 from source.tools.ui_helper import generate_embed, make_fail_embed
+from source.shared_features import SupportModal
 
 
 class BaseCommand(metaclass=ABCMeta):
@@ -186,31 +187,8 @@ class help(BaseCommand):
         
         self.help_channel: discord.TextChannel = None
 
-    async def action(self, cmd_interaction: Interaction) -> None:
+    async def action(self, interaction: Interaction) -> None:
         if self.help_channel is None:
-            self.help_channel = self.bot.get_channel(self.config['help_channel'])
-        class SupportModal(ui.Modal, title='Help Form'):
-            brief = ui.TextInput(label='Title', placeholder='Briefly title your problem.', max_length=50)
-            explain = ui.TextInput(label='Explanation', placeholder='Explain your problem in full. Please give as many details as possible.', style=discord.TextStyle.long)
-            contact = ui.TextInput(label='Contact', placeholder='How should we reach out to you?', required=False)
-
-            async def on_submit(modal_self, interaction: Interaction) -> None:
-                brief, explain, contact = modal_self.brief.value, modal_self.explain.value, modal_self.contact.value
-
-                await self.help_channel.send(embed=generate_embed({
-                    'author': {
-                        'name': interaction.user.display_name,
-                        'icon_url': interaction.user.display_avatar
-                    },
-                    'color': 0x0ec940,
-                    'title': brief,
-                    'description': explain,
-                    'fields': [{
-                        'name': 'Contact Info',
-                        'value': contact
-                    }] if contact else None
-                }))
-
-                await interaction.response.send_message('Successfully opened a support ticket. Expect a response from a board member soon.', ephemeral=True)
-
-        await cmd_interaction.response.send_modal(SupportModal())
+            self.help_channel = self.bot.get_channel(self.config['help_config']['channel'])
+        
+        await interaction.response.send_modal(SupportModal(channel=self.help_channel))
