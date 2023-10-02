@@ -22,6 +22,12 @@ class SupportModal(ui.Modal, title='Help Form'):
     async def on_submit(self, interaction: discord.Interaction) -> None:
         brief, explain, contact = self.brief.value, self.explain.value, self.contact.value
 
+        contact_field = []
+        if contact:
+            contact_field.append({
+                'name': 'Contact Info',
+                'value': contact
+            })
         await self.channel.send(embed=generate_embed({
                 'author': {
                     'name': interaction.user.display_name,
@@ -31,9 +37,9 @@ class SupportModal(ui.Modal, title='Help Form'):
                 'title': brief,
                 'description': explain,
                 'fields': [{
-                    'name': 'Contact Info',
-                    'value': contact
-                }] if contact else None
+                    'name': 'Discord Mention',
+                    'value': interaction.user.mention
+                }] + contact_field
             }))
 
         await interaction.response.send_message('Successfully opened a support ticket. Expect a response from a board member soon.', ephemeral=True)
