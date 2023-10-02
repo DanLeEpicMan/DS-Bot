@@ -78,7 +78,9 @@ class Verify(BasePersistentUI):
                     await member.add_roles(self.member_role)
                     await interaction.followup.send('Success!', ephemeral=True)
                 else:
-                    await interaction.followup.send("It doesn't seem like you're a member of Data Science UCSB. If you believe this is an error, open a ticket with the `/help` command.", ephemeral=True)
+                    await interaction.followup.send(
+                    "It doesn't seem like you're a member of Data Science UCSB. Try again in about a minute to let the member cache refresh.\n\nIf you're still running into issues after waiting, open a support ticket.", 
+                    ephemeral=True)
 
         return VerifyView
 
