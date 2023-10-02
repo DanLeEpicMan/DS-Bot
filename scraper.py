@@ -9,7 +9,7 @@ from discord.ext import commands
 from scraper_tools.web import scrape, EventData, SCRAPER_CONFIG
 from source.tools.ui_helper import generate_embed
 
-with open('secrets/config.json') as file:
+with open('secrets/real_config.json') as file:
     channel_id = json.load(file)['scraper_channel']
 
 # set up colors for each query
