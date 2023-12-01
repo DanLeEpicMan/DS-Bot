@@ -4,6 +4,8 @@ secrets/
 *.json
 *.key
 ad_hoc.py
+venv/
+.idea/
 
 # Python Boilerplate
 __pycache__/
