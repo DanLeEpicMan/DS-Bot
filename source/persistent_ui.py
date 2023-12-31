@@ -5,7 +5,7 @@ from discord.ext.commands import Bot
 from source.tools.ui_helper import generate_embed
 from abc import ABCMeta, abstractmethod
 from source.tools.web_tools import check_member_status
-from source.shared_features import SupportModal
+from source.tools.shared_features import SupportModal
 
 
 class BasePersistentUI(metaclass=ABCMeta):

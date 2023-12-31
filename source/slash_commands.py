@@ -5,7 +5,7 @@ from discord.app_commands import describe, rename
 from discord.ext.commands import Bot
 from discord.interactions import Interaction
 from source.tools.ui_helper import generate_embed, make_fail_embed
-from source.shared_features import SupportModal
+from source.tools.shared_features import SupportModal, HelpInfo
 
 
 class BaseCommand(metaclass=ABCMeta):
@@ -34,6 +34,14 @@ class BaseCommand(metaclass=ABCMeta):
     async def action(self, interaction: discord.Interaction) -> None:
         '''
         Must be implemented in subclass.
+        '''
+        pass
+
+    @abstractmethod
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        '''
+        Must be implemented in subclass. Expected to return a `HelpInfo` object.
         '''
         pass
 
@@ -74,6 +82,10 @@ class ping(BaseCommand):
 
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='ping', desc=cls.__doc__)
     
 class message_send(BaseCommand):
     '''Note the closely related `message_edit` in context_menu.py. It was easier to design the `edit` portion as a context menu command due to its place in Discord, and due to Discord limitations.// '''
@@ -183,6 +195,7 @@ class helptest(BaseCommand):
         cmds = BaseCommand.__subclasses__()
         allCommandsTxt = '',
         for cmd in cmds:
+            cmd_obj = cmd()
             allCommandsTxt += "/" + cmd.__name__ + ": " + cmd.__doc__,
 
         await interaction.response.send_message(allCommandsTxt, ephemeral = True)
