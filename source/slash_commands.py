@@ -68,19 +68,15 @@ class BaseGroup(metaclass=ABCMeta):
         pass
     
 class ping(BaseCommand):
-    '''
-    Returns the latency of the bot in miliseconds.
-    '''
+    '''Returns the latency of the bot in miliseconds.//'''
+    def __init__(self, *, bot: Bot, config: dict) -> None:
+        super().__init__(bot=bot, config=config)
+
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
     
 class message_send(BaseCommand):
-    '''
-    Note the closely related `message_edit` in context_menu.py
-
-    It was easier to design the `edit` portion as a context menu command 
-    due to its place in Discord, and due to Discord limitations.
-    '''
+    '''Note the closely related `message_edit` in context_menu.py. It was easier to design the `edit` portion as a context menu command due to its place in Discord, and due to Discord limitations.// '''
     name = 'send'
     desc = 'Send a message through the bot.'
 
@@ -178,17 +174,15 @@ class message_send(BaseCommand):
         
         return True
 
-class help(BaseCommand):
-    '''
-    Opens a support ticket with the board.
-    '''
+class helptest(BaseCommand):
+    '''Returns list of slash commands.//'''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         
-        self.help_channel: discord.TextChannel = None
-
     async def action(self, interaction: Interaction) -> None:
-        if self.help_channel is None:
-            self.help_channel = self.bot.get_channel(self.config['help_config']['channel'])
-        
-        await interaction.response.send_modal(SupportModal(channel=self.help_channel))
+        cmds = BaseCommand.__subclasses__()
+        allCommandsTxt = '',
+        for cmd in cmds:
+            allCommandsTxt += "/" + cmd.__name__ + ": " + cmd.__doc__,
+
+        await interaction.response.send_message(allCommandsTxt, ephemeral = True)
