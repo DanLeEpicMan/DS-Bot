@@ -37,8 +37,8 @@ class BaseCommand(metaclass=ABCMeta):
         '''
         pass
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def help_info(cls) -> HelpInfo:
         '''
         Must be implemented in subclass. Expected to return a `HelpInfo` object.
@@ -76,10 +76,11 @@ class BaseGroup(metaclass=ABCMeta):
         pass
     
 class ping(BaseCommand):
-    '''Returns the latency of the bot in miliseconds.//'''
+    '''Returns the latency of the bot in miliseconds.'''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
-
+        
+    
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
 
@@ -88,7 +89,7 @@ class ping(BaseCommand):
         return HelpInfo(name='ping', desc=cls.__doc__)
     
 class message_send(BaseCommand):
-    '''Note the closely related `message_edit` in context_menu.py. It was easier to design the `edit` portion as a context menu command due to its place in Discord, and due to Discord limitations.// '''
+    '''Note the closely related `message_edit` in context_menu.py. It was easier to design the `edit` portion as a context menu command due to its place in Discord, and due to Discord limitations. '''
     name = 'send'
     desc = 'Send a message through the bot.'
 
@@ -185,17 +186,25 @@ class message_send(BaseCommand):
             return False
         
         return True
+    
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='send', desc=cls.__doc__)
 
 class helptest(BaseCommand):
-    '''Returns list of slash commands.//'''
+    '''Returns list of slash commands.'''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         
     async def action(self, interaction: Interaction) -> None:
         cmds = BaseCommand.__subclasses__()
-        allCommandsTxt = '',
+        allCommandsTxt = "",
         for cmd in cmds:
-            cmd_obj = cmd()
-            allCommandsTxt += "/" + cmd.__name__ + ": " + cmd.__doc__,
+            getCmd = cmd.help_info()
+            allCommandsTxt += getCmd.display()
 
         await interaction.response.send_message(allCommandsTxt, ephemeral = True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='help', desc=cls.__doc__)

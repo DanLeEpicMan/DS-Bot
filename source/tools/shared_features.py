@@ -23,6 +23,13 @@ class HelpInfo:
         self.group = group
         self.mod_only = mod_only
 
+    @classmethod
+    def getAttribute(cls, name, desc):
+        return cls(name, desc)
+
+    def display(self):
+        return ('/'+self.name,) + (self.desc,)
+
 class SupportModal(ui.Modal, title='Help Form'):
     '''
     Support Modal used by the help button and help command.
