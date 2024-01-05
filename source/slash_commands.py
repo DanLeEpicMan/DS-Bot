@@ -14,19 +14,25 @@ class BaseCommand(metaclass=ABCMeta):
     If you wish to add a description or rename a command, please use the `describe`
     or `rename` decorators, respectively.
     ## Attributes
-    ### No Setup Required
-      `name`: The name of the command. Defaults to the name of the subclass.\n
-      `desc`: The description of the command. Defaults to the docstring of the subclass.\n
+    ### Configurable
+      `name`: The name of the command. Defaults to what's given by `help_info`.\n
+      `desc`: The description of the command. Defaults to what's given by `help_info`.\n
+    ### Unconfigurable
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
+    ## Methods
+    ### Setup Optional
+      `@classmethod help_info`: Returns a `HelpInfo` object detailing the settings of the command.
+      See `HelpInfo` docstring for customizable attributes.
     ### Setup Required
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
     '''
     _is_registered = False
 
     def __init__(self, *, bot: Bot, config: dict) -> None:
-        self.name: str = getattr(self, 'name', self.__class__.__name__)
-        self.desc: str = getattr(self, 'desc', self.__class__.__doc__)
+        hlp = self.help_info()
+        self.name: str = getattr(self, 'name', hlp.name)
+        self.desc: str = getattr(self, 'desc', hlp.desc)
         self.bot: Bot = bot
         self.config: dict = config
 
@@ -38,12 +44,15 @@ class BaseCommand(metaclass=ABCMeta):
         pass
 
     @classmethod
-    @abstractmethod
     def help_info(cls) -> HelpInfo:
         '''
-        Must be implemented in subclass. Expected to return a `HelpInfo` object.
+        Return a default HelpInfo object with the following attribute:
+          1. `name`: The name of the class
+          2. `desc`: The docstring of the class
+          3. `group`: None
+          4. `mod_only`: False
         '''
-        pass
+        return HelpInfo(name=cls.__name__, desc=cls.__doc__)
 
 class BaseGroup(metaclass=ABCMeta):
     '''
@@ -76,23 +85,18 @@ class BaseGroup(metaclass=ABCMeta):
         pass
     
 class ping(BaseCommand):
-    '''Returns the latency of the bot in miliseconds.'''
-    def __init__(self, *, bot: Bot, config: dict) -> None:
-        super().__init__(bot=bot, config=config)
-        
-    
+    '''
+    Returns the latency of the bot in miliseconds.
+    '''
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
-
-    @classmethod
-    def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='ping', desc=cls.__doc__)
     
 class message_send(BaseCommand):
-    '''Note the closely related `message_edit` in context_menu.py. It was easier to design the `edit` portion as a context menu command due to its place in Discord, and due to Discord limitations. '''
-    name = 'send'
-    desc = 'Send a message through the bot.'
-
+    '''
+    Note the closely related `message_edit` in context_menu.py.\n 
+    It was easier to design the `edit` portion as a context menu 
+    command due to its place in Discord, and due to Discord limitations. 
+    '''
     @describe(
         content="The content of the message. Required if title and desc aren't given.",
         title="Title of the embed. Required if content isn't given.",
@@ -189,10 +193,25 @@ class message_send(BaseCommand):
     
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='send', desc=cls.__doc__)
+        return HelpInfo(name='send', desc='Send a message through the bot.')
 
 class helptest(BaseCommand):
-    '''Returns list of slash commands.'''
+    '''
+    Returns list of slash commands.
+    '''
+    # i edited some of the above commands to match my changes (i'll describe it here).
+    # i also left some comments under the HelpInfo object in shared_featurs.py
+
+    # 1. i made it so overriding help_info is no longer required: 
+    #    the default one now sets the 'name' and 'desc' parameters
+    #    to the name and docstring of the class, respectively.
+    #    if you need this to be different, just override help_info
+    #
+    # 2. i reformatted the docstrings to be multi-line strings again.
+    #    note that even though it looks like they occupy multiple lines,
+    #    they really only occupy one line unless you specify \n or have a
+    #    horizontal gap.
+
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         
@@ -201,7 +220,9 @@ class helptest(BaseCommand):
         allCommandsTxt = "",
         for cmd in cmds:
             getCmd = cmd.help_info()
-            allCommandsTxt += getCmd.display()
+            # you should check if the command is mod_only and skip it (unless interaction.user is a mod!)
+
+            allCommandsTxt += getCmd.display() # you might have some luck with f"{getCmd.display()}\n" if you wanna add a newline at the end.
 
         await interaction.response.send_message(allCommandsTxt, ephemeral = True)
 
