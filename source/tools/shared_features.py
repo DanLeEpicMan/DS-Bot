@@ -23,18 +23,11 @@ class HelpInfo:
         self.group = group
         self.mod_only = mod_only
 
-    @classmethod
-    def getAttribute(cls, name, desc):
-        # i'm not quite sure what this is supposed to do? 
-        # you're just initializing another HelpInfo object and returning it.
-        # you can access attributes as "obj.attribute"
-        return cls(name, desc)
-
     def display(self):
         # not too sure what you're trying to return,
         # but writing this as an f-string:
         # f"/{self.name} {self.desc}"
-        return ('/'+self.name,) + (self.desc,)
+        return ('/'+self.name,) + (": "+self.desc,)
 
 class SupportModal(ui.Modal, title='Help Form'):
     '''

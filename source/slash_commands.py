@@ -90,6 +90,10 @@ class ping(BaseCommand):
     '''
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='ping', desc='Returns the latency of the bot in miliseconds.\n')
     
 class message_send(BaseCommand):
     '''
@@ -193,11 +197,10 @@ class message_send(BaseCommand):
     
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='send', desc='Send a message through the bot.')
+        return HelpInfo(name='send', desc='Send a message through the bot.\n')
 
 class helptest(BaseCommand):
-    '''
-    Returns list of slash commands.
+    '''Returns list of slash commands.
     '''
     # i edited some of the above commands to match my changes (i'll describe it here).
     # i also left some comments under the HelpInfo object in shared_featurs.py
@@ -221,11 +224,15 @@ class helptest(BaseCommand):
         for cmd in cmds:
             getCmd = cmd.help_info()
             # you should check if the command is mod_only and skip it (unless interaction.user is a mod!)
+            if getCmd.mod_only == False:
+                allCommandsTxt += getCmd.display() # you might have some luck with f"{getCmd.display()}\n" if you wanna add a newline at the end.
+            elif interaction.user.get_role == 1132838403352830013:
+                allCommandsTxt += getCmd.display()
+        
+        cmdstr = ''.join(map(str,allCommandsTxt))
 
-            allCommandsTxt += getCmd.display() # you might have some luck with f"{getCmd.display()}\n" if you wanna add a newline at the end.
-
-        await interaction.response.send_message(allCommandsTxt, ephemeral = True)
+        await interaction.response.send_message(cmdstr, ephemeral = True)
 
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='help', desc=cls.__doc__)
+        return HelpInfo(name='help', desc=cls.__doc__+'\n')
