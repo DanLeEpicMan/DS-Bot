@@ -200,7 +200,8 @@ class message_send(BaseCommand):
         return HelpInfo(name='send', desc='Send a message through the bot.\n')
 
 class helptest(BaseCommand):
-    '''Returns list of slash commands.
+    '''
+    Returns list of slash commands.
     '''
     # i edited some of the above commands to match my changes (i'll describe it here).
     # i also left some comments under the HelpInfo object in shared_featurs.py
@@ -223,16 +224,17 @@ class helptest(BaseCommand):
         allCommandsTxt = "",
         for cmd in cmds:
             getCmd = cmd.help_info()
-            # you should check if the command is mod_only and skip it (unless interaction.user is a mod!)
+            # checks if the command is mod_only and skip it (unless interaction.user is a mod!)
             if getCmd.mod_only == False:
-                allCommandsTxt += getCmd.display() # you might have some luck with f"{getCmd.display()}\n" if you wanna add a newline at the end.
+                allCommandsTxt += getCmd.display()
             elif interaction.user.get_role == 1132838403352830013:
                 allCommandsTxt += getCmd.display()
         
         cmdstr = ''.join(map(str,allCommandsTxt))
+        # joins tuple to form one string
 
         await interaction.response.send_message(cmdstr, ephemeral = True)
 
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='help', desc=cls.__doc__+'\n')
+        return HelpInfo(name='help', desc= 'Returns list of slash commands.\n')

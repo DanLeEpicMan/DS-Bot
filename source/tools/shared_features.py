@@ -24,9 +24,7 @@ class HelpInfo:
         self.mod_only = mod_only
 
     def display(self):
-        # not too sure what you're trying to return,
-        # but writing this as an f-string:
-        # f"/{self.name} {self.desc}"
+        # returns name and description in correct format for /help command display
         return ('/'+self.name,) + (": "+self.desc,)
 
 class SupportModal(ui.Modal, title='Help Form'):
