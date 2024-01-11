@@ -220,7 +220,18 @@ class helptest(BaseCommand):
         super().__init__(bot=bot, config=config)
         
     async def action(self, interaction: Interaction) -> None:
-        cmds = BaseCommand.__subclasses__()
+        cmds = BaseCommand.__subclasses__().sort(key=lambda x: x.name)
+        '''
+        here i sorted the list like you at.
+        the sorting algorithm will use the command's display-name
+        recall that the name of BaseCommand is the HelpInfo name attribute by default
+        (see the BaseCommand __init__ method)
+
+        i also never explained to you what lamdba functions are.
+        basically, it's a way to define a function without giving it a name (anonymous functions).
+        more info: https://www.w3schools.com/python/python_lambda.asp
+        '''
+
         allCommandsTxt = "",
         for cmd in cmds:
             getCmd = cmd.help_info()
@@ -228,6 +239,9 @@ class helptest(BaseCommand):
             if getCmd.mod_only == False:
                 allCommandsTxt += getCmd.display()
             elif interaction.user.get_role == 1132838403352830013:
+                '''
+                i think get_role is a coroutine, you need to await it. also, you're not calling it.
+                '''
                 allCommandsTxt += getCmd.display()
         
         cmdstr = ''.join(map(str,allCommandsTxt))
