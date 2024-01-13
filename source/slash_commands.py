@@ -220,7 +220,8 @@ class helptest(BaseCommand):
         super().__init__(bot=bot, config=config)
         
     async def action(self, interaction: Interaction) -> None:
-        cmds = BaseCommand.__subclasses__().sort(key=lambda x: x.name)
+        cmds = BaseCommand.__subclasses__()
+        cmds.sort(key=lambda x: x.help_info().name)
         '''
         here i sorted the list like you at.
         the sorting algorithm will use the command's display-name
