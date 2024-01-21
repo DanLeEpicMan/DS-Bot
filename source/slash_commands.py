@@ -199,6 +199,25 @@ class message_send(BaseCommand):
     def help_info(cls) -> HelpInfo:
         return HelpInfo(name='send', desc='Send a message through the bot.\n')
 
+class checkboard(BaseCommand):
+
+    #checks if user is a board member
+
+    def __init__(self, *, bot: Bot, config: dict) -> None:
+        super().__init__(bot=bot, config=config)
+        
+    async def action(self, interaction: Interaction) -> None:
+        
+        if interaction.user.get_role(1132838403352830013):
+            await interaction.response.send_message("You are a Board member!", ephemeral = True)
+        else:
+            await interaction.response.send_message("You are not a Board member.", ephemeral = True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='check', desc= 'Checks if user is on the Data Science UCSB Board.\n')
+
+
 class helptest(BaseCommand):
     '''
     Returns list of slash commands.
@@ -239,7 +258,7 @@ class helptest(BaseCommand):
             # checks if the command is mod_only and skip it (unless interaction.user is a mod!)
             if getCmd.mod_only == False:
                 allCommandsTxt += getCmd.display()
-            elif interaction.user.get_role == 1132838403352830013:
+            elif interaction.user.get_role(1132838403352830013):
                 '''
                 i think get_role is a coroutine, you need to await it. also, you're not calling it.
                 '''
