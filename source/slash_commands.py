@@ -208,10 +208,10 @@ class checkboard(BaseCommand):
         
     async def action(self, interaction: Interaction) -> None:
         
-        if interaction.user.get_role(1132838403352830013):
-            await interaction.response.send_message("You are a Board member!", ephemeral = True)
-        else:
+        if interaction.user.get_role(1132838403352830013) == None:
             await interaction.response.send_message("You are not a Board member.", ephemeral = True)
+        else:
+            await interaction.response.send_message("You are a Board member!", ephemeral = True)
 
     @classmethod
     def help_info(cls) -> HelpInfo:
@@ -258,7 +258,7 @@ class helptest(BaseCommand):
             # checks if the command is mod_only and skip it (unless interaction.user is a mod!)
             if getCmd.mod_only == False:
                 allCommandsTxt += getCmd.display()
-            elif interaction.user.get_role(1132838403352830013):
+            elif not (interaction.user.get_role(1132838403352830013) == None):
                 '''
                 i think get_role is a coroutine, you need to await it. also, you're not calling it.
                 '''
