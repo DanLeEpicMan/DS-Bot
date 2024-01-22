@@ -221,35 +221,12 @@ class helptest(BaseCommand):
     '''
     Returns list of slash commands.
     '''
-    # i edited some of the above commands to match my changes (i'll describe it here).
-    # i also left some comments under the HelpInfo object in shared_featurs.py
-
-    # 1. i made it so overriding help_info is no longer required: 
-    #    the default one now sets the 'name' and 'desc' parameters
-    #    to the name and docstring of the class, respectively.
-    #    if you need this to be different, just override help_info
-    #
-    # 2. i reformatted the docstrings to be multi-line strings again.
-    #    note that even though it looks like they occupy multiple lines,
-    #    they really only occupy one line unless you specify \n or have a
-    #    horizontal gap.
-
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         
     async def action(self, interaction: Interaction) -> None:
         cmds = BaseCommand.__subclasses__()
         cmds.sort(key=lambda x: x.help_info().name)
-        '''
-        here i sorted the list like you at.
-        the sorting algorithm will use the command's display-name
-        recall that the name of BaseCommand is the HelpInfo name attribute by default
-        (see the BaseCommand __init__ method)
-
-        i also never explained to you what lamdba functions are.
-        basically, it's a way to define a function without giving it a name (anonymous functions).
-        more info: https://www.w3schools.com/python/python_lambda.asp
-        '''
 
         allCommandsTxt = "",
         for cmd in cmds:
@@ -258,9 +235,6 @@ class helptest(BaseCommand):
             if getCmd.mod_only == False:
                 allCommandsTxt += getCmd.display()
             elif not (interaction.user.get_role(1132838403352830013) == None):
-                '''
-                i think get_role is a coroutine, you need to await it. also, you're not calling it.
-                '''
                 allCommandsTxt += getCmd.display()
         
         cmdstr = ''.join(map(str,allCommandsTxt))

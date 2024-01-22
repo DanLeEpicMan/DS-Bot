@@ -5,8 +5,10 @@ import discord
 from discord import ui
 from discord.utils import MISSING
 from source.tools.ui_helper import generate_embed
+from dataclasses import dataclass, KW_ONLY
 
 
+@dataclass
 class HelpInfo:
     '''
     This is simply a container for all the info that the help command needs.
@@ -17,11 +19,11 @@ class HelpInfo:
       `group`: The group that the command belongs to (for slash commands). Defaults to None.
       `mod_only`: Whether the command is mod_only. Defaults to False.
     '''
-    def __init__(self, *, name: str, desc: str, group: str = None, mod_only: bool = False) -> None:
-        self.name = name
-        self.desc = desc
-        self.group = group
-        self.mod_only = mod_only
+    _: KW_ONLY
+    name: str
+    desc: str
+    group: str = None
+    mod_only: bool = False
 
     def display(self):
         # returns name and description in correct format for /help command display
