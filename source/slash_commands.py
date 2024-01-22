@@ -197,7 +197,7 @@ class message_send(BaseCommand):
     
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='send', desc='Send a message through the bot.\n')
+        return HelpInfo(name='send', desc='Send a message through the bot.\n', mod_only=True)
 
 class checkboard(BaseCommand):
 
@@ -216,7 +216,6 @@ class checkboard(BaseCommand):
     @classmethod
     def help_info(cls) -> HelpInfo:
         return HelpInfo(name='check', desc= 'Checks if user is on the Data Science UCSB Board.\n')
-
 
 class helptest(BaseCommand):
     '''
