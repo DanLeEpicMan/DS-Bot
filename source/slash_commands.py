@@ -93,7 +93,7 @@ class ping(BaseCommand):
 
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='ping', desc='Returns the latency of the bot in miliseconds.\n')
+        return HelpInfo(name='ping', desc='Returns the latency of the bot in miliseconds.')
     
 class message_send(BaseCommand):
     '''
@@ -197,27 +197,9 @@ class message_send(BaseCommand):
     
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='send', desc='Send a message through the bot.\n', mod_only=True)
+        return HelpInfo(name='send', desc='Send a message through the bot.', mod_only=True)
 
-class checkboard(BaseCommand):
-
-    #checks if user is a board member
-
-    def __init__(self, *, bot: Bot, config: dict) -> None:
-        super().__init__(bot=bot, config=config)
-        
-    async def action(self, interaction: Interaction) -> None:
-        
-        if interaction.user.get_role(1132838403352830013) == None:
-            await interaction.response.send_message("You are not a Board member.", ephemeral = True)
-        else:
-            await interaction.response.send_message("You are a Board member!", ephemeral = True)
-
-    @classmethod
-    def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='check', desc= 'Checks if user is on the Data Science UCSB Board.\n')
-
-class helptest(BaseCommand):
+class help(BaseCommand):
     '''
     Returns list of slash commands.
     '''
@@ -228,20 +210,17 @@ class helptest(BaseCommand):
         cmds = BaseCommand.__subclasses__()
         cmds.sort(key=lambda x: x.help_info().name)
 
-        allCommandsTxt = "",
+        allCommandsTxt = ""
         for cmd in cmds:
             getCmd = cmd.help_info()
             # checks if the command is mod_only and skip it (unless interaction.user is a mod!)
             if getCmd.mod_only == False:
-                allCommandsTxt += getCmd.display()
+                allCommandsTxt += getCmd.display() + "\n"
             elif not (interaction.user.get_role(1132838403352830013) == None):
-                allCommandsTxt += getCmd.display()
-        
-        cmdstr = ''.join(map(str,allCommandsTxt))
-        # joins tuple to form one string
+                allCommandsTxt += getCmd.display() + "\n"
 
-        await interaction.response.send_message(cmdstr, ephemeral = True)
+        await interaction.response.send_message(allCommandsTxt, ephemeral = True)
 
     @classmethod
     def help_info(cls) -> HelpInfo:
-        return HelpInfo(name='help', desc= 'Returns list of slash commands.\n')
+        return HelpInfo(name='help', desc= 'Returns list of slash commands.')

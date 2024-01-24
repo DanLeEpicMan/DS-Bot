@@ -27,7 +27,7 @@ class HelpInfo:
 
     def display(self):
         # returns name and description in correct format for /help command display
-        return ('/'+self.name,) + (": "+self.desc,)
+        return f"`/{self.name}`: {self.desc}"
 
 class SupportModal(ui.Modal, title='Help Form'):
     '''
