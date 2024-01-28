@@ -5,7 +5,29 @@ import discord
 from discord import ui
 from discord.utils import MISSING
 from source.tools.ui_helper import generate_embed
+from dataclasses import dataclass, KW_ONLY
 
+
+@dataclass
+class HelpInfo:
+    '''
+    This is simply a container for all the info that the help command needs.
+
+    # Attributes
+      `name`: Name of the command.
+      `desc`: Description of the command.
+      `group`: The group that the command belongs to (for slash commands). Defaults to None.
+      `mod_only`: Whether the command is mod_only. Defaults to False.
+    '''
+    _: KW_ONLY
+    name: str
+    desc: str
+    group: str = None
+    mod_only: bool = False
+
+    def display(self):
+        # returns name and description in correct format for /help command display
+        return f"`/{self.name}`: {self.desc}"
 
 class SupportModal(ui.Modal, title='Help Form'):
     '''

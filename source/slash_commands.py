@@ -5,7 +5,7 @@ from discord.app_commands import describe, rename
 from discord.ext.commands import Bot
 from discord.interactions import Interaction
 from source.tools.ui_helper import generate_embed, make_fail_embed
-from source.shared_features import SupportModal
+from source.tools.shared_features import SupportModal, HelpInfo
 
 
 class BaseCommand(metaclass=ABCMeta):
@@ -14,19 +14,25 @@ class BaseCommand(metaclass=ABCMeta):
     If you wish to add a description or rename a command, please use the `describe`
     or `rename` decorators, respectively.
     ## Attributes
-    ### No Setup Required
-      `name`: The name of the command. Defaults to the name of the subclass.\n
-      `desc`: The description of the command. Defaults to the docstring of the subclass.\n
+    ### Configurable
+      `name`: The name of the command. Defaults to what's given by `help_info`.\n
+      `desc`: The description of the command. Defaults to what's given by `help_info`.\n
+    ### Unconfigurable
       `bot`: The `commands.Bot` instance of the bot.\n
       `config`: The `json` config file containg relevant server information.
+    ## Methods
+    ### Setup Optional
+      `@classmethod help_info`: Returns a `HelpInfo` object detailing the settings of the command.
+      See `HelpInfo` docstring for customizable attributes.
     ### Setup Required
       `action`: The callback coroutine for when the command is invoked. Must be overridden.
     '''
     _is_registered = False
 
     def __init__(self, *, bot: Bot, config: dict) -> None:
-        self.name: str = getattr(self, 'name', self.__class__.__name__)
-        self.desc: str = getattr(self, 'desc', self.__class__.__doc__)
+        hlp = self.help_info()
+        self.name: str = getattr(self, 'name', hlp.name)
+        self.desc: str = getattr(self, 'desc', hlp.desc)
         self.bot: Bot = bot
         self.config: dict = config
 
@@ -36,6 +42,17 @@ class BaseCommand(metaclass=ABCMeta):
         Must be implemented in subclass.
         '''
         pass
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        '''
+        Return a default HelpInfo object with the following attribute:
+          1. `name`: The name of the class
+          2. `desc`: The docstring of the class
+          3. `group`: None
+          4. `mod_only`: False
+        '''
+        return HelpInfo(name=cls.__name__, desc=cls.__doc__)
 
 class BaseGroup(metaclass=ABCMeta):
     '''
@@ -73,17 +90,17 @@ class ping(BaseCommand):
     '''
     async def action(self, interaction: discord.Interaction):
         await interaction.response.send_message(f'{round(self.bot.latency, 2) * 1000} ms', ephemeral=True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='ping', desc='Returns the latency of the bot in miliseconds.')
     
 class message_send(BaseCommand):
     '''
-    Note the closely related `message_edit` in context_menu.py
-
-    It was easier to design the `edit` portion as a context menu command 
-    due to its place in Discord, and due to Discord limitations.
+    Note the closely related `message_edit` in context_menu.py.\n 
+    It was easier to design the `edit` portion as a context menu 
+    command due to its place in Discord, and due to Discord limitations. 
     '''
-    name = 'send'
-    desc = 'Send a message through the bot.'
-
     @describe(
         content="The content of the message. Required if title and desc aren't given.",
         title="Title of the embed. Required if content isn't given.",
@@ -177,18 +194,33 @@ class message_send(BaseCommand):
             return False
         
         return True
+    
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='send', desc='Send a message through the bot.', mod_only=True)
 
 class help(BaseCommand):
     '''
-    Opens a support ticket with the board.
+    Returns list of slash commands.
     '''
     def __init__(self, *, bot: Bot, config: dict) -> None:
         super().__init__(bot=bot, config=config)
         
-        self.help_channel: discord.TextChannel = None
-
     async def action(self, interaction: Interaction) -> None:
-        if self.help_channel is None:
-            self.help_channel = self.bot.get_channel(self.config['help_config']['channel'])
-        
-        await interaction.response.send_modal(SupportModal(channel=self.help_channel))
+        cmds = BaseCommand.__subclasses__()
+        cmds.sort(key=lambda x: x.help_info().name)
+
+        allCommandsTxt = ""
+        for cmd in cmds:
+            getCmd = cmd.help_info()
+            # checks if the command is mod_only and skip it (unless interaction.user is a mod!)
+            if getCmd.mod_only == False:
+                allCommandsTxt += getCmd.display() + "\n"
+            elif not (interaction.user.get_role(1132838403352830013) == None):
+                allCommandsTxt += getCmd.display() + "\n"
+
+        await interaction.response.send_message(allCommandsTxt, ephemeral = True)
+
+    @classmethod
+    def help_info(cls) -> HelpInfo:
+        return HelpInfo(name='help', desc= 'Returns list of slash commands.')

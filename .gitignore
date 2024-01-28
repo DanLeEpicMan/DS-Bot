@@ -6,6 +6,7 @@ secrets/
 ad_hoc.py
 venv/
 .idea/
+ds-bot
 
 # Python Boilerplate
 __pycache__/
