@@ -50,39 +50,39 @@ class BasePersistentUI(metaclass=ABCMeta):
         '''
         pass
 
-class Verify(BasePersistentUI):
-    '''
-    The verify button users can press to receive the member role.
-    '''
-    def __init__(self, *, bot: Bot, config: dict) -> None:
-        super().__init__(bot=bot, config=config)
-        self.member_role = discord.Object(config['verify_config']['role'])
+# class Verify(BasePersistentUI):
+#     '''
+#     The verify button users can press to receive the member role.
+#     '''
+#     def __init__(self, *, bot: Bot, config: dict) -> None:
+#         super().__init__(bot=bot, config=config)
+#         self.member_role = discord.Object(config['verify_config']['role'])
 
-    @property
-    def message(self) -> int:
-        return self.config['verify_config']['message_id']
+#     @property
+#     def message(self) -> int:
+#         return self.config['verify_config']['message_id']
     
-    @property
-    def view(self) -> type[View]:
-        class VerifyView(View):
-            @ui.button(
-                label='Verify', 
-                style=ButtonStyle.blurple,
-                custom_id=f'verify-button-{self.config["server_id"]}'
-            )
-            async def verify(view_self, interaction: discord.Interaction, button: ui.Button):
-                await interaction.response.defer(ephemeral=True, thinking=True)
-                member = interaction.user
-                result = check_member_status(member)
-                if result:
-                    await member.add_roles(self.member_role)
-                    await interaction.followup.send('Success!', ephemeral=True)
-                else:
-                    await interaction.followup.send(
-                    "It doesn't seem like you're a member of Data Science UCSB. Try again in about a minute to let the member cache refresh.\n\nIf you're still running into issues after waiting, open a support ticket.", 
-                    ephemeral=True)
+#     @property
+#     def view(self) -> type[View]:
+#         class VerifyView(View):
+#             @ui.button(
+#                 label='Verify', 
+#                 style=ButtonStyle.blurple,
+#                 custom_id=f'verify-button-{self.config["server_id"]}'
+#             )
+#             async def verify(view_self, interaction: discord.Interaction, button: ui.Button):
+#                 await interaction.response.defer(ephemeral=True, thinking=True)
+#                 member = interaction.user
+#                 result = check_member_status(member)
+#                 if result:
+#                     await member.add_roles(self.member_role)
+#                     await interaction.followup.send('Success!', ephemeral=True)
+#                 else:
+#                     await interaction.followup.send(
+#                     "It doesn't seem like you're a member of Data Science UCSB. Try again in about a minute to let the member cache refresh.\n\nIf you're still running into issues after waiting, open a support ticket.", 
+#                     ephemeral=True)
 
-        return VerifyView
+#         return VerifyView
 
 class ClassRoleMenu(BasePersistentUI):
     '''

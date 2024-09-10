@@ -27,14 +27,14 @@ class BaseEvent(metaclass=ABCMeta):
         '''
         pass
     
-class on_member_join(BaseEvent):
-    '''
-    Check if a new user is a member of DS UCSB.
-    '''
-    def __init__(self, *, bot: Bot, config: dict) -> None:
-        super().__init__(bot=bot, config=config)
-        self.member_role = discord.Object(config['verify_config']['role'])
+# class on_member_join(BaseEvent):
+#     '''
+#     Check if a new user is a member of DS UCSB.
+#     '''
+#     def __init__(self, *, bot: Bot, config: dict) -> None:
+#         super().__init__(bot=bot, config=config)
+#         self.member_role = discord.Object(config['verify_config']['role'])
     
-    async def action(self, member: discord.Member):
-        if check_member_status(member):
-            await member.add_roles(self.member_role)
+#     async def action(self, member: discord.Member):
+#         if check_member_status(member):
+#             await member.add_roles(self.member_role)
